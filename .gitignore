@@ -1,0 +1,13 @@
+data/
+
+producer/reviews_10.csv
+
+spark/reviews_90.csv
+
+util/*
+
+.DS_Store
+.idea/*
+.venv/*
+
+main.ipynb
