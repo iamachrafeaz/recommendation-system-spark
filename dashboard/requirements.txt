@@ -1,5 +1,4 @@
-flask==3.0.3
-redis==5.0.8
-streamlit==1.37.1
-requests==2.32.3
-
+flask>=3.0
+redis>=5.0
+requests>=2.31
+streamlit>=1.35

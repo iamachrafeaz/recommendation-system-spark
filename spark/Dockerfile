@@ -1,27 +1,17 @@
-FROM apache/spark-py:v3.4.0
+FROM python:3.11-slim
 
-# -----------------------------
-# Python dependencies
-# -----------------------------
+# Java (requis par PySpark)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    default-jdk-headless \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
 
-USER root
-
-RUN pip install --no-cache-dir numpy kafka-python redis
-
-
-ENV IVY_HOME=/opt/spark/.ivy2
-
-ENV SPARK_HOME=/opt/spark
-ENV PATH=$SPARK_HOME/bin:$PATH
-
-RUN mkdir -p /opt/spark/.ivy2 && \
-    chmod -R 775 /opt/spark/.ivy2
+ENV JAVA_HOME=/usr/lib/jvm/default-java
+ENV PYSPARK_PYTHON=python3
 
 WORKDIR /app
 
-COPY batch.py streaming.py reviews_90.csv /app/
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# -----------------------------
-# Default command (safe for dev)
-# -----------------------------
-CMD ["bash"]
+COPY batch.py streaming.py reviews_90.csv ./

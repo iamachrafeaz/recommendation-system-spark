@@ -1,66 +1,65 @@
 import json
-from time import sleep
-
-from kafka import KafkaProducer
+import time
 import pandas as pd
+from kafka import KafkaProducer
+from kafka.admin import KafkaAdminClient, NewTopic
+from kafka.errors import NoBrokersAvailable
 
 
-def create_producer():
-    try:
-        producer = KafkaProducer(
-            bootstrap_servers=['broker:9092'],
-            value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-            request_timeout_ms=5000,
-            retries=2
-        )
+def init_kafka(retries=10, delay=5):
+    admin_client = None
+    for i in range(retries):
+        try:
+            # 1. Connexion Admin pour vérifier/créer le topic
+            admin_client = KafkaAdminClient(bootstrap_servers=['broker:9092'])
+            topic_name = 'product_reviews'
+            if topic_name not in admin_client.list_topics():
+                admin_client.create_topics([NewTopic(name=topic_name, num_partitions=1, replication_factor=1)])
+                print(f"✅ Topic '{topic_name}' créé.")
 
-        # Force metadata fetch to test connection
-        producer.bootstrap_connected()
-        print("✅ Connected to Kafka successfully")
-
-        return producer
-
-    except Exception as e:
-        print("❌ Kafka connection failed:")
-        print(str(e))
-        raise
-
-
-producer = create_producer()
-
-
-def send_product_data(product_data):
-    product = {
-        "user_id": product_data.UserId,
-        "product_id": product_data.ProductId,
-        "score": product_data.Score,
-        "time": product_data.Time
-    }
-
-    try:
-        print("➡️ Sending:", product)
-
-        future = producer.send('product_reviews', product)
-
-        record_metadata = future.get(timeout=10)
-
-        print(f"✅ Sent -> partition {record_metadata.partition}")
-
-    except Exception as e:
-        print("❌ FULL KAFKA ERROR:")
-        print(type(e))
-        print(str(e))
-        raise
-
-def get_product_data():
-    return pd.read_csv("reviews_10.csv")
+            # 2. Initialisation du Producer
+            producer = KafkaProducer(
+                bootstrap_servers=['broker:9092'],
+                value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+                # On ajoute des retries internes au producer pour plus de sécurité
+                retries=5
+            )
+            print("🚀 Connecté à Kafka avec succès !")
+            return producer
+        except NoBrokersAvailable:
+            print(f"⏳ Kafka (broker) n'est pas encore prêt ({i + 1}/{retries})... pause {delay}s")
+            time.sleep(delay)
+        except Exception as e:
+            print(f"⚠️ Erreur : {e}")
+            time.sleep(delay)
+        finally:
+            if admin_client:
+                admin_client.close()
+    raise Exception("❌ Impossible de joindre Kafka.")
 
 
 if __name__ == "__main__":
-    print("🚀 Starting producer")
+    producer = init_kafka()
 
-    data = get_product_data()
+    # Chargement des données
+    df = pd.read_csv("reviews_10.csv")
 
-    for index, row in data.iterrows():
-        send_product_data(row)
-        sleep(10)
+    print(f"📦 Début de l'envoi de {len(df)} messages...")
+
+    for _, row in df.iterrows():
+        # ATTENTION : Les clés ici DOIVENT correspondre au schéma du Streaming
+        msg = {
+            "user_id": str(row['UserId']),
+            "product_id": str(row['ProductId']),
+            "score": float(row['Score']),
+            "time": int(row['Time'])  # Ton streaming utilise "time", pas "timestamp"
+        }
+
+        producer.send('product_reviews', msg)
+        print(f"➡️ Envoyé : User {msg['user_id']} -> Product {msg['product_id']}")
+
+        # On garde un petit sleep pour simuler un flux réel et ne pas saturer le dashboard
+        time.sleep(1)
+
+    producer.flush()
+    print("🏁 Envoi terminé.")
