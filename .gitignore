@@ -11,3 +11,4 @@ util/*
 .venv/*
 
 main.ipynb
+tt.sh

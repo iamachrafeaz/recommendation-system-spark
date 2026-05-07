@@ -6,7 +6,7 @@ FROM apache/spark-py:v3.4.0
 
 USER root
 
-RUN pip install --no-cache-dir numpy kafka-python
+RUN pip install --no-cache-dir numpy kafka-python redis
 
 
 ENV IVY_HOME=/opt/spark/.ivy2

@@ -1,23 +1,34 @@
 ## Setup
-First, download dataset from 
-`https://www.kaggle.com/snap/amazon-fine-food-reviews`
+1. Download dataset from `https://www.kaggle.com/snap/amazon-fine-food-reviews`
+2. Put the CSV in `data/`
+3. Split data for producer/batch inputs:
 
-Copy the dataset (.csv) to `data/`
+```bash
+python main.py
+```
 
-Run `python main.py` to split dataset
+## Start full stack
 
-Run docker compose up, but 
+```bash
+docker compose up -d --build
+```
 
-## Kafka
-Go to the `broker` container and run this command to create topic :
-`/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --partitions 1 --replication-factor 1 --topic product_reviews`
+Services:
+- Airflow UI: `http://localhost:8088` (admin/admin)
+- Dashboard API: `http://localhost:8000`
+- Streamlit UI: `http://localhost:8501`
+- Spark Master UI: `http://localhost:8080`
 
-## Batch
-To train model, go to `spark-master` container and execute this command :
-`spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0 batch.py --input reviews_90.csv`
+## Airflow pipeline
+Run DAG `recommendation_pipeline` to orchestrate:
+1. Kafka producer
+2. Spark batch training (ALS model)
+3. Spark streaming to Redis (Top-5 recommendations by user)
 
-## Streaming
-Make sure producer is up and running : `python producer.py`
+## Manual run (optional)
 
-Go to `spark-master` container and execute this :
-`spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0 streaming.py`
+```bash
+docker compose run --rm producer python producer.py
+docker compose run --rm spark-master spark-submit --master spark://spark-master:7077 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0 /app/batch.py --input /app/reviews_90.csv --output-dir /app/output
+docker compose run --rm spark-master spark-submit --master spark://spark-master:7077 --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0 /app/streaming.py
+```
