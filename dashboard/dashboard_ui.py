@@ -27,7 +27,12 @@ st.markdown(
     }
 
     .stApp { background-color: #0d0f1a; }
-
+    
+    header {
+        background-color: #0d0f1a !important;
+        color: #e2e8f0;
+    }
+    
     /* Header */
     .dash-header {
         padding: 1.5rem 0 1rem 0;
@@ -210,7 +215,7 @@ st.markdown(
     }
 
     /* Hide default streamlit chrome */
-    #MainMenu, footer, header { visibility: hidden; }
+    #MainMenu, footer { visibility: hidden; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -319,6 +324,7 @@ with st.sidebar:
 
 
 # ── Header ────────────────────────────────────────────────────────────────────
+
 st.markdown(
     """<div class="dash-header">
         <div style="display:flex;align-items:center;justify-content:space-between">

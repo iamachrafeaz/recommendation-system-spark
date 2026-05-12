@@ -29,7 +29,6 @@ with DAG(
         auto_remove=True,
         mount_tmp_dir=False,
         mounts=[
-            # Crucial : le dossier où Spark écrit le modèle doit être persistant
             Mount(source="spark-models", target="/app/output", type="volume"),
         ],
     )

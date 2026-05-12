@@ -47,7 +47,6 @@ if __name__ == "__main__":
     print(f"📦 Début de l'envoi de {len(df)} messages...")
 
     for _, row in df.iterrows():
-        # ATTENTION : Les clés ici DOIVENT correspondre au schéma du Streaming
         msg = {
             "user_id": str(row['UserId']),
             "product_id": str(row['ProductId']),

@@ -13,6 +13,23 @@ entièrement conteneurisé avec Docker.
 
 ---
 
+## Configuration
+
+Tout d’abord, téléchargez le dataset depuis :
+[Kaggle Amazon Fine Food Reviews](https://www.kaggle.com/snap/amazon-fine-food-reviews?utm_source=chatgpt.com)
+
+Copiez ensuite le fichier du dataset (`.csv`) dans le projet.
+
+Exécutez enfin :
+
+```bash
+python main.py
+```
+
+pour diviser le dataset.
+
+
+
 ## Installation
 
 ```bash
