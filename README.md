@@ -59,7 +59,7 @@ broker:
 docker compose up --build
 ```
 
-L'ordre de démarrage est automatique :
+L'ordre de démarrage des conteneurs est automatique :
 1. **Kafka + Redis** démarrent en premier
 2. **spark-batch** s'exécute et entraîne le modèle ALS → puis s'arrête
 3. **spark-streaming** + **producer** démarrent en parallèle
