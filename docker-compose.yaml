@@ -14,7 +14,7 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      CLUSTER_ID: "UHtBHe7pRe2vr50e9Afe2g"   # ← remplacez par votre UUID
+      CLUSTER_ID: "Thft3WmEQS6CGJVGPKCdeg"   # ← remplacez par votre UUID
     healthcheck:
       test: [ "CMD-SHELL", "nc -z localhost 9092 || exit 1" ]
       interval: 10s
@@ -24,6 +24,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis
+    ports:
+      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -43,6 +45,8 @@ services:
   spark-streaming:
     build: ./spark
     container_name: spark-streaming
+    ports:
+      - "4040:4040"
     depends_on:
       broker:
         condition: service_healthy
